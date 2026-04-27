@@ -27,4 +27,11 @@ struct FHighlight_SendRequest
 	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UMaterialInstance> MaterialToUse = nullptr;
+	
+	// ========================================================================
+	// OPTIONS
+	// ========================================================================
+	
+	// Setting to Prevent Action
+	bool bCan_Highlight = false;
 };

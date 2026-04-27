@@ -122,57 +122,59 @@ public:
 	bool bUIOnlyMode = false;
 	
 	void Set_MouseInputMode(EMouse_InputMode MouseInputMode);
-	EMouse_InputMode Get_MouseInputMode() const;
 	
 	FHitResult Get_MouseHit(ECollisionChannel CollisionChannel = ECC_Visibility) const;
 	FVector Get_MouseLocation(bool bDebug, float MaxTraceDistance) const;
 	
+private:
+	FVector2D Last_MousePosition = FVector2D(0, 0);
+	void Save_MousePosition(const FVector2D New_MousePosition);
+	void Reset_MousePosition() const;
+	
 	// ========================================================================
 	// HIGHLIGHT SYSTEM
 	// ========================================================================
-
 public:
 	UPROPERTY(EditDefaultsOnly, Category="SETTINGS | HIGHLIGHT")
 	FHighlight_SendRequest Highlight_SendRequest;
 
 	void Set_HighlightTarget();
+private:
 	void Clear_PreviousHighlights();
 	
 	// ========================================================================
 	// CAMERA SYSTEMS
 	// ========================================================================
 public:
+	////////// SHARED //////////
 	UPROPERTY()
 	TObjectPtr<USpringArmComponent> SpringArm = nullptr;
 	UPROPERTY()
 	TObjectPtr<UCameraComponent> Camera = nullptr;
 	
 	void Create_PlayerCameraComponent();
-	
-public:
+
 	FCamera_Values Camera_Values;
-	FCamera_Settings *Camera_Settings;
+	FCamera_Settings *Ref_Camera_Settings;
 	bool bCamera_Settings_Set = false;
+	void Get_Camera_Settings();
 	
+private:
 	TArray<FHitResult> Get_CameraHit(ETraceTypeQuery TraceChannel, EDrawDebugTrace::Type DrawDebugType = EDrawDebugTrace::None) const;
 	
-	// CAMERA Direction for World Direction
-	FRotator Get_SpringArmRotation() const;
+public:
+	////////// ZOOM //////////
+	void Add_Camera_Zoom(float ZoomRate);
+	void Set_Camera_Zoom(float DeltaTime);
+	
+	////////// ROTATION //////////
+	FRotator Get_SpringArmRotation() const; // CAMERA Direction for World Direction
 	
 	bool bRotatingCamera = false;
-	
 	void Set_isRotating(bool isRotating);
-	bool Get_isRotating() const;
 	
-	FVector2D Last_MousePosition = FVector2D(0, 0);
-	void Save_MousePosition(const FVector2D New_MousePosition);
-	void Reset_MousePosition() const;
-	
-	void Set_Camera_Settings();
-	void Set_Camera_Values(float DeltaTime);
-
-	void Add_CameraZoom(float ZoomRate);
-	void Add_CameraRotation(float HorizontalRate, float VerticalRate);
+	void Add_Camera_Rotation(float HorizontalRate, float VerticalRate);
+	void Set_Camera_Rotation(float DeltaTime);
 	
 	// ========================================================================
 	// FADE SYSTEM

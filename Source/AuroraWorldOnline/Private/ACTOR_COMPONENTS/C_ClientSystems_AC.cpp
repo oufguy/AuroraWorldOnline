@@ -150,11 +150,6 @@ void UC_ClientSystems_AC::Set_MouseInputMode(EMouse_InputMode MouseInputMode)
 	}
 }
 
-EMouse_InputMode UC_ClientSystems_AC::Get_MouseInputMode() const
-{
-	return Current_MouseInputMode;
-}
-
 FHitResult UC_ClientSystems_AC::Get_MouseHit(ECollisionChannel CollisionChannel) const
 {
 	// Variables
@@ -217,12 +212,27 @@ FVector UC_ClientSystems_AC::Get_MouseLocation(bool bDebug, float MaxTraceDistan
 	return HitLocation;
 }
 
+void UC_ClientSystems_AC::Save_MousePosition(const FVector2D New_MousePosition)
+{
+	// Set it to Before Rotation Position
+	Last_MousePosition = New_MousePosition;
+}
+
+void UC_ClientSystems_AC::Reset_MousePosition() const
+{
+	// Set it to After Rotation Position
+	Ref_PlayerController->SetMouseLocation(Last_MousePosition.X, Last_MousePosition.Y);
+}
+
 //==============================================================
 // HIGHLIGHT SYSTEM
 //==============================================================
 
 void UC_ClientSystems_AC::Set_HighlightTarget()
 {
+	// Check Setting
+	if (!Highlight_SendRequest.bCan_Highlight) return;
+	
 	// Get CursorHit
 	FHitResult CursorHit = Get_MouseHit(Highlight_SendRequest.Highlight_CollisionChannel);
 	
@@ -324,13 +334,6 @@ void UC_ClientSystems_AC::Clear_PreviousHighlights()
 
 void UC_ClientSystems_AC::Create_PlayerCameraComponent()
 {
-	// Prevent Crash & Null
-	if (!IsValid(Ref_PlayerSoul))
-	{
-		RLOG_E("PLEASE SET Ref_PlayerSoul")
-		return;
-	}
-	
 	// Create the SpringArmComponent
 	SpringArm = NewObject<USpringArmComponent>(Ref_PlayerSoul, USpringArmComponent::StaticClass(), TEXT("SpringArm"));
 	if (SpringArm)
@@ -370,6 +373,18 @@ void UC_ClientSystems_AC::Create_PlayerCameraComponent()
 	Ref_PlayerController->SetViewTargetWithBlend(Ref_PlayerSoul);
 }
 
+void UC_ClientSystems_AC::Get_Camera_Settings()
+{
+	// Set Camera_Settings
+	Ref_Camera_Settings = &Ref_GameInstance->Camera_Settings;
+	bCamera_Settings_Set = true;
+	
+	// Set as True from Start, Can Change depending on Situation
+	Camera_Values.bCan_Zoom = true;
+	Camera_Values.bCan_Rotate = true;
+	Highlight_SendRequest.bCan_Highlight = true;
+	Fade_SendRequest.bCan_Fade = true;
+}
 
 TArray<FHitResult> UC_ClientSystems_AC::Get_CameraHit(ETraceTypeQuery TraceChannel, EDrawDebugTrace::Type DrawDebugType) const
 {
@@ -398,6 +413,55 @@ TArray<FHitResult> UC_ClientSystems_AC::Get_CameraHit(ETraceTypeQuery TraceChann
 	if (HitResult.Num() > 0) return HitResult;
 	else return TArray<FHitResult>();
 }
+
+void UC_ClientSystems_AC::Add_Camera_Zoom(float ZoomRate)
+{
+	// Prevent 0
+	if (ZoomRate == 0.0f) return;
+	
+	// Inversion Check
+	if (Ref_Camera_Settings->Zoom_Inverted == false)
+	{
+		ZoomRate *= -1;
+	}
+	
+	// Apply
+	Camera_Values.Target_Zoom = FMath::Clamp(
+		Camera_Values.Target_Zoom
+		+ (Ref_Camera_Settings->Zoom_Sensitivity * ZoomRate),
+		Camera_Values.Min_Zoom,
+		Camera_Values.Max_Zoom
+	);
+}
+
+void UC_ClientSystems_AC::Set_Camera_Zoom(float DeltaTime)
+{
+	// Prevent Unnecessary Action
+	if (Camera_Values.Current_Zoom != Camera_Values.Target_Zoom)
+	{
+		// Check if Close
+		if (!FMath::IsNearlyEqual(Camera_Values.Current_Zoom, Camera_Values.Target_Zoom, 0.1f))
+		{
+			// Apply
+			Camera_Values.Current_Zoom = FMath::FInterpTo(
+				Camera_Values.Current_Zoom,
+				Camera_Values.Target_Zoom,
+				DeltaTime,
+				Ref_Camera_Settings->Zoom_Speed
+			);
+			SpringArm->TargetArmLength = Camera_Values.Current_Zoom;
+		}
+		// if Close, Apply
+		else
+		{
+			// Apply
+			Camera_Values.Current_Zoom = Camera_Values.Target_Zoom;
+			SpringArm->TargetArmLength = Camera_Values.Current_Zoom;
+		}
+	}
+}
+
+
 
 FRotator UC_ClientSystems_AC::Get_SpringArmRotation() const
 {
@@ -441,61 +505,8 @@ void UC_ClientSystems_AC::Set_isRotating(bool isRotating)
 	
 }
 
-bool UC_ClientSystems_AC::Get_isRotating() const
+void UC_ClientSystems_AC::Set_Camera_Rotation(float DeltaTime)
 {
-	return bRotatingCamera;
-}
-
-void UC_ClientSystems_AC::Save_MousePosition(const FVector2D New_MousePosition)
-{
-	
-	// Set it to Before Rotation Position
-	Last_MousePosition = New_MousePosition;
-}
-
-void UC_ClientSystems_AC::Reset_MousePosition() const
-{
-	
-	// Set it to Before Rotation Position
-	Ref_PlayerController->SetMouseLocation(Last_MousePosition.X, Last_MousePosition.Y);
-}
-
-void UC_ClientSystems_AC::Set_Camera_Settings()
-{
-	// Create PlayerCamera
-	Create_PlayerCameraComponent();
-	
-	// Set Camera_Settings
-	Camera_Settings = &Ref_GameInstance->Camera_Settings;
-	bCamera_Settings_Set = true;
-}
-
-void UC_ClientSystems_AC::Set_Camera_Values(float DeltaTime)
-{
-	// Prevent Unnecessary Action
-	if (Camera_Values.Current_Zoom != Camera_Values.Target_Zoom)
-	{
-		// Check if Close
-		if (!FMath::IsNearlyEqual(Camera_Values.Current_Zoom, Camera_Values.Target_Zoom, 0.1f))
-		{
-			// Apply
-			Camera_Values.Current_Zoom = FMath::FInterpTo(
-				Camera_Values.Current_Zoom,
-				Camera_Values.Target_Zoom,
-				DeltaTime,
-				Camera_Settings->Zoom_Speed
-			);
-			SpringArm->TargetArmLength = Camera_Values.Current_Zoom;
-		}
-		// if Close, Apply
-		else
-		{
-			// Apply
-			Camera_Values.Current_Zoom = Camera_Values.Target_Zoom;
-			SpringArm->TargetArmLength = Camera_Values.Current_Zoom;
-		}
-	}
-
 	// Prevent Unnecessary Action
 	if (Camera_Values.Current_Horizontal != Camera_Values.Target_Horizontal)
 	{
@@ -509,32 +520,12 @@ void UC_ClientSystems_AC::Set_Camera_Values(float DeltaTime)
 		// Apply
 		Camera_Values.Current_Vertical = Camera_Values.Target_Vertical;
 	}
-	
+		
 	// Lastly, Apply Rotation
 	SpringArm->SetRelativeRotation(FRotator(Camera_Values.Current_Vertical, Camera_Values.Current_Horizontal, 0.0f));
 }
 
-void UC_ClientSystems_AC::Add_CameraZoom(float ZoomRate)
-{
-	// Prevent 0
-	if (ZoomRate == 0.0f) return;
-	
-	// Inversion Check
-	if (Camera_Settings->Zoom_Inverted == false)
-	{
-		ZoomRate *= -1;
-	}
-	
-	// Apply
-	Camera_Values.Target_Zoom = FMath::Clamp(
-		Camera_Values.Target_Zoom
-		+ (Camera_Settings->Zoom_Sensitivity * ZoomRate),
-		Camera_Values.Min_Zoom,
-		Camera_Values.Max_Zoom
-	);
-}
-
-void UC_ClientSystems_AC::Add_CameraRotation(float HorizontalRate, float VerticalRate)
+void UC_ClientSystems_AC::Add_Camera_Rotation(float HorizontalRate, float VerticalRate)
 {
 	// Prevent 0
 	if (VerticalRate == 0.0f && HorizontalRate == 0.0f) return;
@@ -543,20 +534,20 @@ void UC_ClientSystems_AC::Add_CameraRotation(float HorizontalRate, float Vertica
 	if (HorizontalRate >= 1.5f || HorizontalRate <= -1.5f)
 	{
 		// Inversion Check
-		if (Camera_Settings->Horizontal_Inverted == false)
+		if (Ref_Camera_Settings->Horizontal_Inverted == false)
 		{
 			HorizontalRate *= -1;
 		}
 		
 		// Apply
-		Camera_Values.Target_Horizontal += (Camera_Settings->Horizontal_Sensitivity *HorizontalRate);		
+		Camera_Values.Target_Horizontal += (Ref_Camera_Settings->Horizontal_Sensitivity *HorizontalRate);		
 	}
 	
 	// Prevent Unnecessary Action
 	if (VerticalRate >= 1.5f || VerticalRate <= -1.5f)
 	{
 		// Inversion Check
-		if (Camera_Settings->Vertical_Inverted == false)
+		if (Ref_Camera_Settings->Vertical_Inverted == false)
 		{
 			VerticalRate *= -1;
 		}
@@ -564,7 +555,7 @@ void UC_ClientSystems_AC::Add_CameraRotation(float HorizontalRate, float Vertica
 		// Apply
 		Camera_Values.Target_Vertical = FMath::Clamp(
 			Camera_Values.Target_Vertical
-			+ (Camera_Settings->Vertical_Sensitivity * VerticalRate),
+			+ (Ref_Camera_Settings->Vertical_Sensitivity * VerticalRate),
 			Camera_Values.Min_Vertical,
 			Camera_Values.Max_Vertical
 		);
@@ -577,6 +568,9 @@ void UC_ClientSystems_AC::Add_CameraRotation(float HorizontalRate, float Vertica
 
 void UC_ClientSystems_AC::Request_FadeTarget()
 {
+	// Check Setting
+	if (!Fade_SendRequest.bCan_Fade) return;
+	
 	// Get HitResult
 	TArray<FHitResult> HitResult = Get_CameraHit(Fade_SendRequest.Fade_TraceChannel);
 	TArray<AActor*> ActorsToFade = TArray<AActor*>();
@@ -610,7 +604,7 @@ void UC_ClientSystems_AC::Request_FadeTarget()
 				const float Distance = FVector::Dist(CameraLocation, TargetLocation);
 				
 				// Skip if not too close
-				if (Distance > Camera_Settings->Fade_CameraBlock_Dist) continue;
+				if (Distance > Ref_Camera_Settings->Fade_CameraBlock_Dist) continue;
 			}
 			
 			// Check if Already Exists

@@ -17,13 +17,13 @@ class AURORAWORLDONLINE_API AC_PlayerController : public APlayerController
 	// ========================================================================
 public:
 	AC_PlayerController();
-	
-	void Create_ClientSystems_ActorComponent();
 
 	UPROPERTY(EditDefaultsOnly, Category="SETTINGS | ClientSystems")
 	TSubclassOf<UC_ClientSystems_AC> Ref_ClientSystems_Class = nullptr;
 	UPROPERTY()
 	TObjectPtr<UC_ClientSystems_AC> Ref_ClientSystems = nullptr;
+	
+	void Create_ClientSystems_ActorComponent();
 	
 protected:
 	virtual void BeginPlay() override;
