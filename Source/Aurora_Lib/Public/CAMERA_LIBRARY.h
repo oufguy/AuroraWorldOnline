@@ -100,7 +100,7 @@ struct FFade_SendRequest
 	
 	// Chosen Component to Add
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<UActorComponent> TargetComponent = nullptr;
+	TSubclassOf<UActorComponent> Fade_Component_Class = nullptr;
 
 	// Chosen Material to Use
 	UPROPERTY(EditAnywhere)

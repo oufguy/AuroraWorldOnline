@@ -96,10 +96,77 @@ void UC_ClientSystems_AC::Action_Mouse_LeftClick(const FInputActionValue& Value)
 
 void UC_ClientSystems_AC::Action_Mouse_RightClick(const FInputActionInstance& Instance)
 {
+	// Prevent Null
+	if (!bInputActions_Ready) return;
+	
+	// Get Event and Value
+	ETriggerEvent TriggerEvent = Instance.GetTriggerEvent();
+	const FInputActionValue& Value = Instance.GetValue();
+	
+	// Get and Convert the Value to the ones we will use
+	FVector InputValue = Value.Get<FVector>();
+	float IsRotating = InputValue.X;
+	float HorizontalRate = InputValue.Y;
+	float VerticalRate = InputValue.Z;
+	
+	switch (TriggerEvent)
+	{
+	case ETriggerEvent::Triggered:
+		// if Holding Mouse_RightButton, Start Rotating
+		if (IsRotating > 0)
+		{
+			if (!bRotatingCamera)
+			{
+				Set_isRotating(true);
+			}
+
+			Add_Camera_Rotation(HorizontalRate, VerticalRate);
+		}
+		// Check if Holding Mouse_RightButton
+		else if (IsRotating <= 0)
+		{
+			if (bRotatingCamera)
+			{
+				Set_isRotating(false);
+			}
+		}
+		break;
+		// if done Holding Mouse_RightButton, Stop Rotating
+	case ETriggerEvent::Completed:
+		if (IsRotating <= 0)
+		{
+			if (bRotatingCamera)
+			{
+				Set_isRotating(false);
+			}
+		}
+		break;
+		// if not Holding Mouse_RightButton, Stop Rotating
+	case ETriggerEvent::Canceled:
+		if (IsRotating <= 0)
+		{
+			if (bRotatingCamera)
+			{
+				Set_isRotating(false);
+			}
+		}
+		break;
+
+	default:
+		break;
+	}
 }
 
 void UC_ClientSystems_AC::Action_Mouse_WheelAxis(const FInputActionValue& Value)
 {
+	// Prevent Null
+	if (!bInputActions_Ready) return;
+	
+	// Get the Float Value of Action
+	float ZoomRate = Value.Get<float>();
+	
+	// Add Zoom
+	Add_Camera_Zoom(ZoomRate);
 }
 
 void UC_ClientSystems_AC::Action_Movement(const FInputActionValue& Value)
@@ -340,9 +407,24 @@ void UC_ClientSystems_AC::Create_PlayerCameraComponent()
 	{
 		SpringArm->RegisterComponent();
 		SpringArm->AttachToComponent(Ref_PlayerSoul->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		// ========================================================================
+		// SPRING ARM OPTIONS
 		SpringArm->TargetArmLength = 500.f;
-		SpringArm->bUsePawnControlRotation = false;
 		SpringArm->SetRelativeLocation(FVector::ZeroVector);
+		
+		SpringArm->bUsePawnControlRotation = false;
+		
+		SpringArm->bInheritPitch = false;
+		SpringArm->bInheritRoll = false;
+		SpringArm->bInheritYaw = false;
+		
+		SpringArm->bEnableCameraLag = false;
+		SpringArm->CameraLagSpeed = 25.0f;
+		SpringArm->bEnableCameraRotationLag = true;
+		SpringArm->CameraRotationLagSpeed = 25.0f;
+		
+		SpringArm->bDoCollisionTest = true;
+		SpringArm->ProbeChannel = ECC_Camera;
 	}
 	else
 	{
@@ -360,7 +442,11 @@ void UC_ClientSystems_AC::Create_PlayerCameraComponent()
 			Camera->AttachToComponent(SpringArm, FAttachmentTransformRules::KeepRelativeTransform);
 			Camera->Activate();
 		}
+		// ========================================================================
+		// CAMERA OPTIONS
 		Camera->bUsePawnControlRotation = false;
+		
+		Camera->FieldOfView = 90.f;
 	}
 	else
 	{

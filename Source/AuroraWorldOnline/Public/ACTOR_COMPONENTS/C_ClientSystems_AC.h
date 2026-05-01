@@ -180,9 +180,6 @@ public:
 	// FADE SYSTEM
 	// ========================================================================
 public:
-	UPROPERTY(EditDefaultsOnly, Category="SETTINGS | FADE")
-	TObjectPtr<UC_FadeComponent> Fade_Component;
-	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="SETTINGS | FADE")
 	FFade_SendRequest Fade_SendRequest;
 	
