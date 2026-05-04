@@ -6,6 +6,8 @@
 
 #include "MOVEMENT_LIBRARY.h"
 
+class AC_GameMode;
+
 class AC_PlayerCharacter;
 
 #include "C_PlayerState.generated.h"
@@ -28,19 +30,20 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
+	UPROPERTY()
+	TObjectPtr<AC_GameMode> Ref_GameMode = nullptr;
+	
 	//==============================================================
 	// PLAYER SYSTEM
 	//==============================================================
 public:
-	
 	UPROPERTY(Replicated)
 	int32 UserID = 0;
 	
 	UPROPERTY()
-	TObjectPtr<AC_PlayerCharacter> PlayerCharacter = nullptr;
-	
+	TObjectPtr<AC_PlayerCharacter> Ref_PlayerCharacter = nullptr;
 	UPROPERTY(EditDefaultsOnly, Category="SETTINGS | PLAYER")
-	TSubclassOf<AC_PlayerCharacter> PlayerCharacter_Class = nullptr;
+	TSubclassOf<AC_PlayerCharacter> Ref_PlayerCharacter_Class = nullptr;
 	
 	void Spawn_PlayerCharacter();
 };

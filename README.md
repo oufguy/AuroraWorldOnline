@@ -1,5 +1,5 @@
 **WELCOME TO THE AURORA PROJECT**
-An **Unreal Engine 5** Passion Project 
+An **Unreal Engine 5** Passion Project
 
 This project represents a dedicated, multi-year commitment to pushing the boundaries of what is possible within Unreal Engine. Whether this journey concludes in commercial success or serves as a monumental learning experience, the primary goal remains the same: Innovation through Iteration.
 
@@ -19,7 +19,7 @@ In the spirit of transparency and community growth, I will be providing the C++ 
 * **Engineering Philosophy:** I prioritize performance and structural integrity. My approach often involves intentional over-engineering to ensure every system is as robust and optimized as possible.
 * **Commitment to Excellence:** For me, development is about the craftsmanship of the code. I prefer building deep, elegant solutions that provide personal satisfaction and long-term stability.
 ***
-**Inspired Games :** 
+**Inspired Games :**
 > Original Idea
 * The Aurora Online (Araf Online)
 > a Godot Project from Indie Developer giving me MORE Inspiration
