@@ -7,7 +7,7 @@ In the spirit of transparency and community growth, I will be providing the C++ 
 
 **MY PLAN :**
 * **Source-First Learning** : By sharing the underlying C++, I aim to create simplefied complex systems like custom network replication and memory-efficient architecture.
-> What i meant by this is : Enabled it to Critisim from outside and making systems like this --> Instead of Replicating Skeletal Mesh --> Send players Mesh ID + Animation ID, so its both lightweight and only runs in player's client
+> What i meant by this is : Enabling Critisim from outside and making systems like this --> Instead of Replicating Skeletal Mesh --> Send players Mesh ID + Animation ID, so its both lightweight and only runs in player's client
 * **Long-Term Resilience** : This is a marathon, not a sprint. The project is designed to evolve alongside the engine, prioritizing stability and performance over quick fixes.
 *  **Open Contribution to Knowledge** : Success is measured not just by the final product, but by the technical hurdles cleared and the knowledge shared along the way.
 
