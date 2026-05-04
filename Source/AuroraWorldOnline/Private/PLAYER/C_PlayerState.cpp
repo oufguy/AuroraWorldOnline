@@ -51,6 +51,8 @@ void AC_PlayerState::Spawn_PlayerCharacter()
 {
 	// Check Authority
 	if (!HasAuthority()) ratto_return("Does not Have Authority");
+	// Check if World is Available
+	if (!GetWorld() || !GetWorld()->IsGameWorld()) ratto_return("World is NOT Ready");
 	
 	// Prevent Null & Crash
 	if (!IsValid(Ref_PlayerCharacter_Class)) ratto_return("PLEASE SET PlayerCharacter_Class");
