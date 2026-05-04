@@ -8,10 +8,10 @@
 
 class AC_GameMode;
 
+class AC_PlayerSoul;
 class AC_PlayerCharacter;
 
 #include "C_PlayerState.generated.h"
-
 
 UCLASS()
 class AURORAWORLDONLINE_API AC_PlayerState : public APlayerState
@@ -33,6 +33,9 @@ public:
 	UPROPERTY()
 	TObjectPtr<AC_GameMode> Ref_GameMode = nullptr;
 	
+	UPROPERTY()
+	TObjectPtr<AC_PlayerSoul> Ref_PlayerSoul = nullptr;
+	
 	//==============================================================
 	// PLAYER SYSTEM
 	//==============================================================
@@ -46,4 +49,5 @@ public:
 	TSubclassOf<AC_PlayerCharacter> Ref_PlayerCharacter_Class = nullptr;
 	
 	void Spawn_PlayerCharacter();
+	void Attach_PlayerSoul();
 };

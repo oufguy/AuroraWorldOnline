@@ -406,7 +406,7 @@ void UC_ClientSystems_AC::Create_PlayerCameraComponent()
 	if (SpringArm)
 	{
 		SpringArm->RegisterComponent();
-		SpringArm->AttachToComponent(Ref_PlayerSoul->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		SpringArm->AttachToComponent(Ref_PlayerSoul->GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 		// ========================================================================
 		// SPRING ARM OPTIONS
 		SpringArm->TargetArmLength = 500.f;
@@ -416,7 +416,7 @@ void UC_ClientSystems_AC::Create_PlayerCameraComponent()
 		
 		SpringArm->bInheritPitch = false;
 		SpringArm->bInheritRoll = false;
-		SpringArm->bInheritYaw = false;
+		SpringArm->bInheritYaw = true;
 		
 		SpringArm->bEnableCameraLag = false;
 		SpringArm->CameraLagSpeed = 25.0f;
@@ -439,7 +439,7 @@ void UC_ClientSystems_AC::Create_PlayerCameraComponent()
 		Camera->RegisterComponent();
 		if (SpringArm)
 		{
-			Camera->AttachToComponent(SpringArm, FAttachmentTransformRules::KeepRelativeTransform);
+			Camera->AttachToComponent(SpringArm, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 			Camera->Activate();
 		}
 		// ========================================================================

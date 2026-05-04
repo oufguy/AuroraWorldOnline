@@ -5,6 +5,7 @@
 
 #include "GAME/C_GameMode.h"
 
+#include "PLAYER/C_PlayerSoul.h"
 #include "PLAYER/C_PlayerCharacter.h"
 #include "PLAYER/C_PlayerController.h"
 
@@ -80,12 +81,44 @@ void AC_PlayerState::Spawn_PlayerCharacter()
 		// Spawn Pawn & Set Pawn
 		Ref_PlayerCharacter = GetWorld()->SpawnActor<AC_PlayerCharacter>(Ref_PlayerCharacter_Class, SpawnLocation, SpawnRotation, SpawnParams);
 		Ref_PlayerCharacter->UserID = UserID;
-	
+		
+		// Attach the PlayerSoul
+		Attach_PlayerSoul();
+		RLOG_W("Player Character has been Spawned")
+		
 		Ref_GameMode->List_PlayerCharacters_Add(UserID, Ref_PlayerCharacter);
 	}
 	else
 	{
 		ratto_return("Player Character has been Found, Skipping Spawn");
 	}
+	
+}
+
+void AC_PlayerState::Attach_PlayerSoul()
+{
+	// Check Authority
+	if (!HasAuthority()) ratto_return("Does not Have Authority");
+	// Check if World is Available
+	if (!GetWorld() || !GetWorld()->IsGameWorld()) ratto_return("World is NOT Ready");
+	
+	// Check Pawn
+	if (!GetPawn()) ratto_return("Pawn is NOT READY");
+	if (SAFE_CAST(GetPawn(), AC_PlayerSoul::StaticClass()))
+	{
+		Ref_PlayerSoul = Cast<AC_PlayerSoul>(GetPawn());
+		RLOG_W("Player Soul Successfully CAST")
+	}
+	else ratto_return("PLAYER SOULD FAILED TO CAST");
+	
+	// Check PlayerSoul
+	if (!IsValid(Ref_PlayerSoul)) ratto_return("Ref_PlayerSoul is NOT READY");
+	
+	RLOG_W("PlayerSoul's Current Position : %f, %f, %f", Ref_PlayerSoul->GetActorLocation().X, Ref_PlayerSoul->GetActorLocation().Y, Ref_PlayerSoul->GetActorLocation().Z);
+	
+	// Attach PlayerSoul into PlayerCharacter CameraSocket
+	Ref_PlayerSoul->AttachToComponent(Ref_PlayerCharacter->CameraSocket, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+
+	RLOG_W("PlayerSoul's NEW Position : %f, %f, %f", Ref_PlayerSoul->GetActorLocation().X, Ref_PlayerSoul->GetActorLocation().Y, Ref_PlayerSoul->GetActorLocation().Z);
 	
 }
