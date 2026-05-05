@@ -22,14 +22,6 @@ AC_PlayerState::AC_PlayerState()
 void AC_PlayerState::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	// Check Authority
-	if (!HasAuthority()) ratto_return("Does not Have Authority");
-	// Check if World is Available
-	if (!GetWorld() || !GetWorld()->IsGameWorld()) ratto_return("World is NOT Ready");
-	
-	// TEST PROPERTY : SPAWN CHARACTER
-	Spawn_PlayerCharacter();	
 }
 
 void AC_PlayerState::Tick(float DeltaTime)
@@ -107,18 +99,13 @@ void AC_PlayerState::Attach_PlayerSoul()
 	if (SAFE_CAST(GetPawn(), AC_PlayerSoul::StaticClass()))
 	{
 		Ref_PlayerSoul = Cast<AC_PlayerSoul>(GetPawn());
-		RLOG_W("Player Soul Successfully CAST")
 	}
 	else ratto_return("PLAYER SOULD FAILED TO CAST");
 	
 	// Check PlayerSoul
 	if (!IsValid(Ref_PlayerSoul)) ratto_return("Ref_PlayerSoul is NOT READY");
-	
-	RLOG_W("PlayerSoul's Current Position : %f, %f, %f", Ref_PlayerSoul->GetActorLocation().X, Ref_PlayerSoul->GetActorLocation().Y, Ref_PlayerSoul->GetActorLocation().Z);
-	
+
 	// Attach PlayerSoul into PlayerCharacter CameraSocket
 	Ref_PlayerSoul->AttachToComponent(Ref_PlayerCharacter->CameraSocket, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
-	RLOG_W("PlayerSoul's NEW Position : %f, %f, %f", Ref_PlayerSoul->GetActorLocation().X, Ref_PlayerSoul->GetActorLocation().Y, Ref_PlayerSoul->GetActorLocation().Z);
-	
 }

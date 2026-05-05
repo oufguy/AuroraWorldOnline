@@ -45,6 +45,9 @@ void AC_GameMode::PostLogin(APlayerController* NewPlayer)
 	// TEST PROPERTY : RANDOMIZED USERID
 	Ref_PlayerState->UserID = FMath::RandRange(1, 2000000);
 	
+	// TEST PROPERTY : SPAWN CHARACTER
+	Ref_PlayerState->Spawn_PlayerCharacter();
+	
 }
 
 // ========================================================================
