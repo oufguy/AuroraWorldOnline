@@ -29,4 +29,12 @@ protected:
 	virtual void BeginPlay() override;
 public:
 	virtual void Tick(float DeltaTime) override;
+	
+	// ========================================================================
+	// MOVEMENT SYSTEM
+	// ========================================================================
+	
+	UFUNCTION(Server, Reliable)
+	void Receive_MovementDirections(const bool bIsJumping, const uint8 MovementState);
+	void Receive_MovementDirections_Implementation(const bool bIsJumping, const uint8 MovementState);
 };

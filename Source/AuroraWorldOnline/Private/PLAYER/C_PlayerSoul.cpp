@@ -8,8 +8,6 @@
 AC_PlayerSoul::AC_PlayerSoul()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	// No Need to replicate yourself to others
-	bReplicates = false;
 }
 
 void AC_PlayerSoul::BeginPlay()

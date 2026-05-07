@@ -23,26 +23,24 @@ UC_ClientSystems_AC::UC_ClientSystems_AC()
 	SetIsReplicated(false);
 }
 
-void UC_ClientSystems_AC::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
 void UC_ClientSystems_AC::StartTimerManager()
 {
+	// Start delayed setup attempts
+	GetWorld()->GetTimerManager().SetTimer(
+		TimerHandle,
+		this,
+		&UC_ClientSystems_AC::TimerRepeatFunction,
+		0.1f,
+		true
+	);
 }
 
 void UC_ClientSystems_AC::TimerRepeatFunction()
 {
+	// Start Sending Movement Directions
+	Send_MovementDirections();
 }
 
-void UC_ClientSystems_AC::StartLoopManager()
-{
-}
-
-void UC_ClientSystems_AC::LoopRepeatFunction()
-{
-}
 
 // ========================================================================
 // INPUT SYSTEM
@@ -50,10 +48,14 @@ void UC_ClientSystems_AC::LoopRepeatFunction()
 
 void UC_ClientSystems_AC::Add_InputMappingContext()
 {
+	// Prevent Unncessary Action
+	if (bSubSystem_Ready) return;
 	// Get the Owning SubSystem
-	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(Ref_PlayerController->GetLocalPlayer());
+	Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(Ref_PlayerController->GetLocalPlayer());
     // Prevent Null
 	if (!Subsystem) ratto_return("SubSystem is Invalid");
+	// Set True to Prevent Loop
+	bSubSystem_Ready = true;
 	
 	// Clear ALL
 	Subsystem->ClearAllMappings();
@@ -74,6 +76,8 @@ void UC_ClientSystems_AC::Bind_InputMappingKeys()
 	if (!bInputActions_Ready)
 	{
 		InputComponent->BindAction(IA_Mouse_LeftClick, ETriggerEvent::Triggered, this, &UC_ClientSystems_AC::Action_Mouse_LeftClick);
+		InputComponent->BindAction(IA_Mouse_LeftClick, ETriggerEvent::Canceled, this, &UC_ClientSystems_AC::Action_Mouse_LeftClick);
+		InputComponent->BindAction(IA_Mouse_LeftClick, ETriggerEvent::Completed, this, &UC_ClientSystems_AC::Action_Mouse_LeftClick);
 		///////////////////////////////////////////////////////////////////////////////////
 		InputComponent->BindAction(IA_Mouse_RightClick, ETriggerEvent::Triggered, this, &UC_ClientSystems_AC::Action_Mouse_RightClick);
 		InputComponent->BindAction(IA_Mouse_RightClick, ETriggerEvent::Canceled, this, &UC_ClientSystems_AC::Action_Mouse_RightClick);
@@ -82,26 +86,36 @@ void UC_ClientSystems_AC::Bind_InputMappingKeys()
 		InputComponent->BindAction(IA_Mouse_WheelAxis, ETriggerEvent::Triggered, this, &UC_ClientSystems_AC::Action_Mouse_WheelAxis);
 		///////////////////////////////////////////////////////////////////////////////////
 		InputComponent->BindAction(IA_InteractionMode, ETriggerEvent::Triggered, this, &UC_ClientSystems_AC::Action_IA_InteractionMode);
-		///////////////////////////////////////////////////////////////////////////////////
-		InputComponent->BindAction(IA_Movement, ETriggerEvent::Triggered, this, &UC_ClientSystems_AC::Action_Movement);
 		
 		// Set True to Prevent Loop
 		bInputActions_Ready = true;
 	}
 }
 
-void UC_ClientSystems_AC::Action_Mouse_LeftClick(const FInputActionValue& Value)
-{
-}
-
-void UC_ClientSystems_AC::Action_Mouse_RightClick(const FInputActionInstance& Instance)
+void UC_ClientSystems_AC::Action_Mouse_LeftClick(const FInputActionInstance& Instance)
 {
 	// Prevent Null
 	if (!bInputActions_Ready) return;
 	
-	// Get Event and Value
 	ETriggerEvent TriggerEvent = Instance.GetTriggerEvent();
-	const FInputActionValue& Value = Instance.GetValue();
+	
+	switch (TriggerEvent)
+	{
+	case ETriggerEvent::Triggered:
+		break;
+	case ETriggerEvent::Completed:
+		break;
+	case ETriggerEvent::Canceled:
+		break;
+	default:
+		break;
+	}
+}
+
+void UC_ClientSystems_AC::Action_Mouse_RightClick(const FInputActionValue& Value)
+{
+	// Prevent Null
+	if (!bInputActions_Ready) return;
 	
 	// Get and Convert the Value to the ones we will use
 	FVector InputValue = Value.Get<FVector>();
@@ -109,51 +123,23 @@ void UC_ClientSystems_AC::Action_Mouse_RightClick(const FInputActionInstance& In
 	float HorizontalRate = InputValue.Y;
 	float VerticalRate = InputValue.Z;
 	
-	switch (TriggerEvent)
+	// if Holding Mouse_RightButton, Start Rotating
+	if (IsRotating > 0)
 	{
-	case ETriggerEvent::Triggered:
-		// if Holding Mouse_RightButton, Start Rotating
-		if (IsRotating > 0)
+		if (!bRotatingCamera)
 		{
-			if (!bRotatingCamera)
-			{
-				Set_isRotating(true);
-			}
+			Set_isRotating(true);
+		}
 
-			Add_Camera_Rotation(HorizontalRate, VerticalRate);
-		}
-		// Check if Holding Mouse_RightButton
-		else if (IsRotating <= 0)
+		Add_Camera_Rotation(HorizontalRate, VerticalRate);
+	}
+	// Check if Holding Mouse_RightButton
+	else if (IsRotating <= 0)
+	{
+		if (bRotatingCamera)
 		{
-			if (bRotatingCamera)
-			{
-				Set_isRotating(false);
-			}
+			Set_isRotating(false);
 		}
-		break;
-		// if done Holding Mouse_RightButton, Stop Rotating
-	case ETriggerEvent::Completed:
-		if (IsRotating <= 0)
-		{
-			if (bRotatingCamera)
-			{
-				Set_isRotating(false);
-			}
-		}
-		break;
-		// if not Holding Mouse_RightButton, Stop Rotating
-	case ETriggerEvent::Canceled:
-		if (IsRotating <= 0)
-		{
-			if (bRotatingCamera)
-			{
-				Set_isRotating(false);
-			}
-		}
-		break;
-
-	default:
-		break;
 	}
 }
 
@@ -169,12 +155,20 @@ void UC_ClientSystems_AC::Action_Mouse_WheelAxis(const FInputActionValue& Value)
 	Add_Camera_Zoom(ZoomRate);
 }
 
-void UC_ClientSystems_AC::Action_Movement(const FInputActionValue& Value)
+void UC_ClientSystems_AC::Action_IA_InteractionMode(const FInputActionValue& Value)
 {
 }
 
-void UC_ClientSystems_AC::Action_IA_InteractionMode(const FInputActionValue& Value)
+FInputActionValue UC_ClientSystems_AC::Get_InputActionValue(UInputAction* InputAction)
 {
+	// Prevent Null
+	if (!bInputActions_Ready) return FInputActionValue();
+	if (!bSubSystem_Ready) return FInputActionValue();
+	if (!IsValid(InputAction)) return FInputActionValue();
+	if (!IsValid(Ref_PlayerController)) return FInputActionValue();
+    
+	// Return the Result
+	return Subsystem->GetPlayerInput()->GetActionValue(InputAction);
 }
 
 
@@ -768,7 +762,79 @@ void UC_ClientSystems_AC::Clear_PreviousFades(const TArray<AActor*>& ActorsToFad
 		Actors_Faded.Remove(FadedActor);
 	}
 }
-	
+
 // ========================================================================
 // MOVEMENT SYSTEM
 // ========================================================================
+
+void UC_ClientSystems_AC::Set_MovementDirections()
+{
+	New_MovementDirections = Get_InputActionValue(IA_Movement).Get<FVector>();
+
+	// First Set to the New Movement Vector
+	if (Current_MovementDirections == New_MovementDirections) return;
+	else if (Current_MovementDirections != New_MovementDirections)
+	{
+		Current_MovementDirections = New_MovementDirections;
+	}
+	
+	// Start bIsJumping as False
+	MovementStruct.bIsJumping = false;
+	
+	// bIsJumping Check
+	if (Current_MovementDirections.Z != 0.0f)
+	{
+		MovementStruct.bIsJumping = true;
+	}
+	
+	// Start MovementState as Idle
+	MovementStruct.MovementState = EMovementState::Idle;
+	
+	// MAIN DIRECTIONS
+	if (Current_MovementDirections.X > 0 && Current_MovementDirections.Y == 0)
+	{
+		MovementStruct.MovementState = EMovementState::Forward;
+	}
+	else if (Current_MovementDirections.X < 0 && Current_MovementDirections.Y == 0)
+	{
+		MovementStruct.MovementState = EMovementState::Backward;
+	}
+	else if (Current_MovementDirections.X == 0 && Current_MovementDirections.Y > 0)
+	{
+		MovementStruct.MovementState = EMovementState::Right;
+	}
+	else if (Current_MovementDirections.X == 0 && Current_MovementDirections.Y < 0)
+	{
+		MovementStruct.MovementState = EMovementState::Left;
+	}
+	// OTHER DIRECTIONS
+	else if (Current_MovementDirections.X > 0 && Current_MovementDirections.Y > 0)
+	{
+		MovementStruct.MovementState = EMovementState::Forward_Right;
+	}
+	else if (Current_MovementDirections.X > 0 && Current_MovementDirections.Y < 0)
+	{
+		MovementStruct.MovementState = EMovementState::Forward_Left;
+	}
+	else if (Current_MovementDirections.X < 0 && Current_MovementDirections.Y > 0)
+	{
+		MovementStruct.MovementState = EMovementState::Backward_Right;
+	}
+	else if (Current_MovementDirections.X < 0 && Current_MovementDirections.Y < 0)
+	{
+		MovementStruct.MovementState = EMovementState::Backward_Left;
+	}
+}
+
+void UC_ClientSystems_AC::Send_MovementDirections()
+{
+	// Get the current input value directly
+	Set_MovementDirections();
+	
+	// Create the Results
+	bool bIsJumping = MovementStruct.bIsJumping;
+	uint8 MovementState = static_cast<int8>(MovementStruct.MovementState);
+	
+	// Send the Results
+	Ref_PlayerController->Receive_MovementDirections(bIsJumping, MovementState);
+}

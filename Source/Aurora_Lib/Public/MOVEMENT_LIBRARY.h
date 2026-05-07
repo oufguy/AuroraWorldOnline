@@ -28,6 +28,6 @@ struct FMovementStruct
 {
 	GENERATED_BODY()
 	
-	EMovementState MovementState = EMovementState::Idle;
 	bool bIsJumping = false;
+	EMovementState MovementState = EMovementState::Idle;
 };

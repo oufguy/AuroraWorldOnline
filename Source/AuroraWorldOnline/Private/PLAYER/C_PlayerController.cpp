@@ -50,6 +50,9 @@ void AC_PlayerController::Tick(float DeltaTime)
 				// Add the Input Map and Actions
 				Ref_ClientSystems->Add_InputMappingContext();
 				Ref_ClientSystems->Bind_InputMappingKeys();
+				
+				// Start Timer Manager
+				Ref_ClientSystems->StartTimerManager();
 			
 				// Check if GameInstance is Valid
 				if (IsValid(GetGameInstance()))
@@ -80,4 +83,13 @@ void AC_PlayerController::Create_ClientSystems_ActorComponent()
 	Ref_ClientSystems->RegisterComponent();
 	Ref_ClientSystems->Ref_PlayerController = this;
 	Ref_ClientSystems->bThisComponentReady = true;
+}
+
+// ========================================================================
+// MOVEMENT SYSTEM
+// ========================================================================
+
+
+void AC_PlayerController::Receive_MovementDirections_Implementation(const bool bIsJumping, const uint8 MovementState)
+{
 }

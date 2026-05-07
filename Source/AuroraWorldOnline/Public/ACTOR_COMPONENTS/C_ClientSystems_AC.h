@@ -16,6 +16,7 @@
 
 #include "InputActionValue.h"
 
+class UEnhancedInputLocalPlayerSubsystem;
 class UInputMappingContext;
 class UInputAction;
 
@@ -44,11 +45,12 @@ public:
 	TObjectPtr<UC_GameInstance> Ref_GameInstance = nullptr;
 	
 	UPROPERTY()
+	TObjectPtr<AC_PlayerState> Ref_PlayerState = nullptr;
+	UPROPERTY()
 	TObjectPtr<AC_PlayerController> Ref_PlayerController = nullptr;
 	UPROPERTY()
 	TObjectPtr<AC_PlayerSoul> Ref_PlayerSoul = nullptr;
-	UPROPERTY()
-	TObjectPtr<AC_PlayerState> Ref_PlayerState = nullptr;
+
 	
 private:
 	UPROPERTY()
@@ -56,21 +58,18 @@ private:
 	UPROPERTY()
 	TArray<AActor*> Actors_Highlighted; // HIGHLIGHT SYSTEM
 	
-	virtual void BeginPlay() override;
-	
+public:
 	FTimerHandle TimerHandle;
 	void StartTimerManager();
 	void TimerRepeatFunction();
-	
-	FTimerHandle LoopHandle;
-	void StartLoopManager();
-	void LoopRepeatFunction();
 	
 	// ========================================================================
 	// INPUT SYSTEM
 	// ========================================================================
 public:
 	// Variables to prevent Actions when they aren't ready
+	bool bSubSystem_Ready = false;
+	
 	bool bInputMapping_Ready = false;
 
 	void Add_InputMappingContext();
@@ -78,35 +77,37 @@ public:
 
 	void Bind_InputMappingKeys();
 	
+	TObjectPtr<UEnhancedInputLocalPlayerSubsystem> Subsystem = nullptr;
+	
 	// Input Mapping Context
 	UPROPERTY(EditDefaultsOnly, Category="SETTINGS | INPUT | MAPPING")
-	UInputMappingContext* DefaultMappingContext;
+	TObjectPtr<UInputMappingContext> DefaultMappingContext;
 
 	// Input Actions
 	UPROPERTY(EditDefaultsOnly, Category="SETTINGS | INPUT | IACTIONS")
-	UInputAction* IA_Mouse_LeftClick;
+	TObjectPtr<UInputAction> IA_Mouse_LeftClick;
 	UFUNCTION()
-	void Action_Mouse_LeftClick(const FInputActionValue& Value);
+	void Action_Mouse_LeftClick(const FInputActionInstance& Instance);
 	
 	UPROPERTY(EditDefaultsOnly, Category="SETTINGS | INPUT | IACTIONS")
-	UInputAction* IA_Mouse_RightClick;
+	TObjectPtr<UInputAction> IA_Mouse_RightClick;
 	UFUNCTION()
-	void Action_Mouse_RightClick(const FInputActionInstance& Instance);
+	void Action_Mouse_RightClick(const FInputActionValue& Value);
 	
 	UPROPERTY(EditDefaultsOnly, Category="SETTINGS | INPUT | IACTIONS")
-	UInputAction* IA_Mouse_WheelAxis;
+	TObjectPtr<UInputAction> IA_Mouse_WheelAxis;
 	UFUNCTION()
 	void Action_Mouse_WheelAxis(const FInputActionValue& Value);
 	
 	UPROPERTY(EditDefaultsOnly, Category="SETTINGS | INPUT | IACTIONS")
-	UInputAction* IA_Movement;
-	UFUNCTION()
-	void Action_Movement(const FInputActionValue& Value);
+	TObjectPtr<UInputAction> IA_Movement;
 	
 	UPROPERTY(EditDefaultsOnly, Category="SETTINGS | INPUT | IACTIONS")
 	UInputAction* IA_InteractionMode;
 	UFUNCTION()
 	void Action_IA_InteractionMode(const FInputActionValue& Value);
+	
+	FInputActionValue Get_InputActionValue(UInputAction* InputAction);
 	
 	// ========================================================================
 	// UI SYSTEM
@@ -189,4 +190,11 @@ public:
 	// ========================================================================
 	// MOVEMENT SYSTEM
 	// ========================================================================
+	
+	FVector Current_MovementDirections = FVector::ZeroVector;
+	FVector New_MovementDirections = FVector::ZeroVector;
+	FMovementStruct MovementStruct;
+	
+	void Set_MovementDirections();
+	void Send_MovementDirections();
 };
